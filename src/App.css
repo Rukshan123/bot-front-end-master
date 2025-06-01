@@ -1,0 +1,127 @@
+/* Navbar */
+.navbar {
+  box-shadow: 0 2px 8px #f0f1f2;
+  padding: 0 0px;
+  position: sticky;
+  top: 0;
+  height: 80px;
+  z-index: 1000;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 80px;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-image {
+  height: 40px;
+  width: 40px;
+  object-fit: contain;
+}
+
+.logo-text {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.nav-desktop {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.nav-items {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.nav-item {
+  cursor: pointer;
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  transition: background 0.2s;
+}
+
+.nav-item:hover {
+  background-color: #cacaca;
+}
+
+.nav-item.active {
+  background-color: #cacaca;
+  font-weight: 500;
+}
+
+.account-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  gap: 8px;
+}
+
+.account-text {
+  font-size: 14px;
+}
+
+/* Mobile */
+.nav-mobile {
+  display: none;
+}
+
+.drawer-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.drawer-profile {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-desktop {
+    display: none;
+  }
+
+  .nav-mobile {
+    display: block;
+  }
+}
+
+/* Navbar End */
+
+/*Agent Dashboard*/
+.default-btn {
+  height: 150px;
+}
+
+.tab-btns {
+  height: 50px;
+  width: 200px;
+}
+
+.create-agent-btn {
+  width: 145px;
+  height: 45px;
+  font-size: 15px;
+  font-weight: bold;
+}
+/*Agent Dashboard */
