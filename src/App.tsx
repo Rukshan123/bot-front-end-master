@@ -18,10 +18,17 @@ import Tools from "./components/Navbar/Tools";
 import CreateAgent from "./components/Agent/CreateAgent/CreateAgent";
 import Footer from "./components/Footer/Footer";
 import AgentDetailPage from "./components/Agent/AgentDetailPage";
+import Profile from "./components/Profile/Profile";
 
-import { useMsal, useIsAuthenticated } from "@azure/msal-react";
+import {
+  useMsal,
+  useIsAuthenticated,
+  AuthenticatedTemplate,
+  UnauthenticatedTemplate,
+} from "@azure/msal-react";
 import { JSX, useEffect } from "react";
 import { loginRequest } from "./Auth/msalConfig";
+import AuthRedirect from "./components/auth/AuthRedirect";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const isAuthenticated = useIsAuthenticated();
@@ -37,6 +44,7 @@ const AppContent = () => {
   const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
   useEffect(() => {
+    // console.error(accounts, "accounts");
     const logTokens = async () => {
       if (accounts.length > 0) {
         try {
@@ -103,6 +111,14 @@ const AppContent = () => {
           }
         />
 
+        <Route path="/auth/redirect" element={<AuthRedirect />} />
+        <Route
+          path="/vendor-registration"
+          element={<VendorRegistrationForm />}
+        />
+        <Route path="/home" element={<Home />} />
+        <Route path="*" element={<VendorRegistrationForm />} />
+
         {/* Protected Routes */}
         <Route
           path="/createAgent"
@@ -117,14 +133,6 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <AgentDetailPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/home"
-          element={
-            <ProtectedRoute>
-              <Home />
             </ProtectedRoute>
           }
         />
@@ -152,6 +160,14 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
     </div>
   );
@@ -160,8 +176,17 @@ const AppContent = () => {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col overflow-x-hidden bg-white">
-        <AppContent />
+      <div className="min-h-screen flex flex-col justify-between overflow-x-hidden bg-white">
+        <div className="flex-1">
+          <AuthenticatedTemplate>
+            <AppContent />
+          </AuthenticatedTemplate>
+          <UnauthenticatedTemplate>
+            <Routes>
+              <Route path="*" element={<StartPage child={<LoginForm />} />} />
+            </Routes>
+          </UnauthenticatedTemplate>
+        </div>
         <Footer />
       </div>
     </Router>

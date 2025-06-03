@@ -4,31 +4,47 @@ import {
   UserOutlined,
   LogoutOutlined,
   ProfileOutlined,
+  LoginOutlined,
 } from "@ant-design/icons";
 import { menuProps } from "../../props/menuProps";
-import { Link, useLocation } from "react-router-dom";
-import { useMsal } from "@azure/msal-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 
 const { Title } = Typography;
 
 const Navbar: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
 
   const { instance, accounts } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
   const user = accounts[0];
 
-  console.log(user, "user");
-  const userDisplayName = user?.name || user?.username || "Account";
+  // console.log(user, "user");
+  const userDisplayName =
+    typeof user?.idTokenClaims?.["First Name"] === "string"
+      ? user.idTokenClaims["First Name"]
+      : typeof (user as any)?.["First Name"] === "string"
+      ? (user as any)["First Name"]
+      : "Account";
 
   const handleLogout = () => {
     instance.logoutRedirect();
   };
 
+  const handleLogin = () => {
+    navigate("/login");
+  };
+
   const userMenu = (
     <Menu>
-      <Menu.Item key="profile" icon={<ProfileOutlined />}>
+      <Menu.Item
+        key="profile"
+        icon={<ProfileOutlined />}
+        onClick={() => navigate("/profile")}
+      >
         Profile
       </Menu.Item>
       <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
@@ -74,15 +90,26 @@ const Navbar: React.FC = () => {
 
       {/* Right: User Info */}
       <div className="flex items-center gap-4">
-        <Dropdown overlay={userMenu} placement="bottomRight" arrow>
+        {isAuthenticated ? (
+          <Dropdown overlay={userMenu} placement="bottomRight" arrow>
+            <Button
+              shape="round"
+              icon={<Avatar icon={<UserOutlined />} size="small" />}
+              className="pl-2 pr-3 flex items-center gap-2 text-base h-10"
+            >
+              {userDisplayName}
+            </Button>
+          </Dropdown>
+        ) : (
           <Button
             shape="round"
-            icon={<Avatar icon={<UserOutlined />} size="small" />}
+            icon={<LoginOutlined />}
+            onClick={handleLogin}
             className="pl-2 pr-3 flex items-center gap-2 text-base h-10"
           >
-            {userDisplayName}
+            Login
           </Button>
-        </Dropdown>
+        )}
       </div>
     </div>
   );

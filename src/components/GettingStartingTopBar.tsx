@@ -7,6 +7,8 @@ const { Text } = Typography;
 const cardStyle: React.CSSProperties = {
   width: 620,
   border: "none",
+  marginTop: 0,
+  paddingTop: 0,
 };
 
 const imgStyle: React.CSSProperties = {
@@ -17,14 +19,14 @@ const imgStyle: React.CSSProperties = {
 
 function GettingStartingTopBar() {
   return (
-    <div>
+    <div className="mt-0">
       {" "}
       <Card
         style={cardStyle}
         styles={{ body: { padding: 0, overflow: "hidden" } }}
       >
         <Flex justify="flex-start">
-          <Link className="underline pl-5 " to="/">
+          <Link className="underline pl-5" to="/">
             <img
               alt="avatar"
               src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
@@ -38,7 +40,9 @@ function GettingStartingTopBar() {
             justify="flex-start"
             style={{ padding: 32 }}
           >
-            <Typography.Title level={3}>Get Started!</Typography.Title>
+            <Typography.Title level={3} style={{ marginTop: 0 }}>
+              Get Started!
+            </Typography.Title>
             <Text className="text-base">Welcome to ChatBot</Text>
           </Flex>
         </Flex>

@@ -75,7 +75,7 @@ const AgentDashboard = () => {
               <div className="border p-4 text-center hover:shadow cursor-pointer default-btn flex flex-col items-center justify-center bg-slate-100 rounded-md">
                 <RobotOutlined style={{ fontSize: 40 }} />
                 <div className="mt-5">
-                  Create Agent
+                  Try the bot
                   <PlusOutlined className="ml-3" style={{ fontSize: 15 }} />
                 </div>
               </div>

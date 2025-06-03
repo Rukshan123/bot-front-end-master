@@ -10,7 +10,7 @@ import QnAAgentForm from "./QnAAgentForm";
 import FileAgentForm from "./FileAgentForm";
 
 const tabs = [
-  { key: "text", label: "Text", icon: <FileTextOutlined /> },
+  { key: "text", label: "Info", icon: <FileTextOutlined /> },
   { key: "file", label: "Files", icon: <FileOutlined /> },
   { key: "qa", label: "Q/A", icon: <MessageOutlined /> },
 ];
