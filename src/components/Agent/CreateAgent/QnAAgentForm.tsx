@@ -1,26 +1,38 @@
 import { Button, Input } from "antd";
-import { useState } from "react";
+import { FC } from "react";
 
-const QnAAgentForm = () => {
-  const [questions, setQuestions] = useState([{ question: "", answer: "" }]);
+interface QnAFormData {
+  questions: Array<{
+    question: string;
+    answer: string;
+  }>;
+}
 
+interface Props {
+  formData: QnAFormData;
+  onChange: (data: QnAFormData) => void;
+}
+
+const QnAAgentForm: FC<Props> = ({ formData, onChange }) => {
   const handleChange = (
     index: number,
     field: "question" | "answer",
     value: string
   ) => {
-    const updated = [...questions];
+    const updated = [...formData.questions];
     updated[index][field] = value;
-    setQuestions(updated);
+    onChange({ questions: updated });
   };
 
   const handleAdd = () => {
-    setQuestions([...questions, { question: "", answer: "" }]);
+    onChange({
+      questions: [...formData.questions, { question: "", answer: "" }],
+    });
   };
 
   return (
     <div className="space-y-4">
-      {questions.map((qa, idx) => (
+      {formData.questions.map((qa, idx) => (
         <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             className="h-12"

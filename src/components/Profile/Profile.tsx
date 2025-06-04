@@ -15,6 +15,8 @@ const Profile: React.FC = () => {
   const storedUserData = sessionStorage.getItem("userData");
   const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
+  console.log(userData);
+
   const userInfo = {
     firstName: userData?.first_name || "",
     lastName: userData?.last_name || "",

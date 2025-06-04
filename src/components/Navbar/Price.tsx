@@ -70,7 +70,7 @@ function Price() {
         "15 AI Actions/agent",
         "5 Team members",
         "11,000,000 characters/agent",
-        "Remove 'Powered by Chatclient'",
+        "Remove 'Powered by Sass Chatbot'",
       ],
     },
   ];

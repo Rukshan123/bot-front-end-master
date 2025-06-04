@@ -1,17 +1,40 @@
-import { Button, Input, Switch, Form } from "antd";
-import { useState } from "react";
+import { Input, Switch, Form } from "antd";
+import { FC, useEffect } from "react";
 
-const TextAgentForm = () => {
-  const [enableWhatsApp, setEnableWhatsApp] = useState(false);
+interface TextFormData {
+  name: string;
+  trainingText: string;
+  whatsappNumber?: string;
+  enableWhatsApp: boolean;
+}
+
+interface Props {
+  formData: TextFormData;
+  onChange: (data: TextFormData) => void;
+}
+
+const TextAgentForm: FC<Props> = ({ formData, onChange }) => {
   const [form] = Form.useForm();
 
-  const handleCreateAgent = () => {
+  useEffect(() => {
+    form.setFieldsValue(formData);
+  }, [form, formData]);
+
+  const handleFormChange = () => {
     const values = form.getFieldsValue();
-    console.log("Text Agent Created!", values);
+    onChange({
+      ...values,
+      enableWhatsApp: formData.enableWhatsApp,
+    });
   };
 
   return (
-    <Form form={form} layout="vertical" className="space-y-4">
+    <Form
+      form={form}
+      layout="vertical"
+      className="space-y-4"
+      onValuesChange={handleFormChange}
+    >
       <Form.Item
         name="name"
         rules={[{ required: true, message: "Please enter a chatbot name" }]}
@@ -27,11 +50,16 @@ const TextAgentForm = () => {
       </Form.Item>
 
       <div className="flex items-center gap-2 mb-4">
-        <Switch checked={enableWhatsApp} onChange={setEnableWhatsApp} />
+        <Switch
+          checked={formData.enableWhatsApp}
+          onChange={(checked) =>
+            onChange({ ...formData, enableWhatsApp: checked })
+          }
+        />
         <span className="text-gray-600">Enable WhatsApp Number</span>
       </div>
 
-      {enableWhatsApp && (
+      {formData.enableWhatsApp && (
         <Form.Item
           name="whatsappNumber"
           rules={[

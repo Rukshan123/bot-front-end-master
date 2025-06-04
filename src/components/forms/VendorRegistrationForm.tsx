@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { AccountInfo } from "@azure/msal-browser";
 import { loginRequest } from "../../Auth/msalConfig";
-import axios from "axios";
 import { useState } from "react";
 import Loader from "../common/Loader";
+import apiService from "../../services/api";
 const { Title } = Typography;
 
 interface VendorFormData {
@@ -60,16 +60,9 @@ function VendorRegistrationForm() {
         },
       };
 
-      const apiResponse = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/v1/users`,
-        requestBody,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          withCredentials: false,
-        }
+      const apiResponse = await apiService.registerUser(
+        accessToken,
+        requestBody
       );
 
       sessionStorage.removeItem("userData");
@@ -142,19 +135,11 @@ function VendorRegistrationForm() {
           <Input.TextArea showCount maxLength={100} />
         </Form.Item>
 
-        <Row>
-          <Col span={24} className="flex justify-start items-center">
-            <Button
-              className="mt-5"
-              block
-              type="primary"
-              size="large"
-              htmlType="submit"
-            >
-              Sign Up
-            </Button>
-          </Col>
-        </Row>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" className="w-full">
+            Register
+          </Button>
+        </Form.Item>
       </Form>
     </>
   );

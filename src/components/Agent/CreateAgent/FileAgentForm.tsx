@@ -1,12 +1,31 @@
 import { Upload, Button } from "antd";
 import { CloudUploadOutlined, UploadOutlined } from "@ant-design/icons";
+import { FC } from "react";
+import { UploadChangeParam, UploadFile } from "antd/es/upload";
 
-const FileUploadForm = () => {
+interface FileFormData {
+  files: UploadFile[];
+}
+
+interface Props {
+  formData: FileFormData;
+  onChange: (data: FileFormData) => void;
+}
+
+const FileAgentForm: FC<Props> = ({ formData, onChange }) => {
+  const handleChange = (info: UploadChangeParam<UploadFile>) => {
+    onChange({ files: info.fileList });
+  };
+
   return (
     <div>
       <div className="pt-10 flex flex-col items-center space-y-6">
         <CloudUploadOutlined style={{ fontSize: "80px" }} />
-        <Upload>
+        <Upload
+          fileList={formData.files}
+          onChange={handleChange}
+          accept=".pdf,.txt,.csv,.docx"
+        >
           <Button className="text-lg p-5" icon={<UploadOutlined />}>
             Upload File
           </Button>
@@ -20,4 +39,4 @@ const FileUploadForm = () => {
   );
 };
 
-export default FileUploadForm;
+export default FileAgentForm;

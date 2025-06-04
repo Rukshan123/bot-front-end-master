@@ -14,7 +14,6 @@ import Home from "./components/Navbar/Home";
 import Navbar from "./components/Navbar/Nav";
 import Agents from "./components/Navbar/Agents";
 import Price from "./components/Navbar/Price";
-import Tools from "./components/Navbar/Tools";
 import CreateAgent from "./components/Agent/CreateAgent/CreateAgent";
 import Footer from "./components/Footer/Footer";
 import AgentDetailPage from "./components/Agent/AgentDetailPage";
@@ -152,14 +151,7 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/tools"
-          element={
-            <ProtectedRoute>
-              <Tools />
-            </ProtectedRoute>
-          }
-        />
+
         <Route
           path="/profile"
           element={

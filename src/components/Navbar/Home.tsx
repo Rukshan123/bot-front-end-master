@@ -1,51 +1,144 @@
-import { Card } from "antd";
+import { Button } from "antd";
 
 function Home() {
+  const features = [
+    {
+      icon: "🗄️",
+      title: "Multiple Data Sources",
+      description: "Import data from multiple sources to train your agent.",
+    },
+    {
+      icon: "🎨",
+      title: "Customizations",
+      description:
+        "Customize your agent's look and feel to match your brand's style and website design.",
+    },
+
+    {
+      icon: "🔒",
+      title: "Privacy & Security",
+      description:
+        "Your data is hosted on secure servers with robust encryption and access control.",
+    },
+    {
+      icon: "🔄",
+      title: "Auto-Retrain",
+      description:
+        "Set your agent to retrain automatically and always be synced with your data.",
+    },
+  ];
+
   return (
-    <div className="p-6">
-      <div className="container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Left Column */}
-          <div className="space-y-6">
-            {/* Paragraph Card */}
-            <Card title="Text" className="rounded-md shadow-sm">
-              <p className="text-gray-700">
-                Contrary to popular belief, Lorem Ipsum is not simply random
-                text. It has roots in a piece of classical Latin literature from
-                45 BC, making it over 2000 years old. Richard McClintock, a
-                Latin professor at Hampden-Sydney College in Virginia, looked up
-                one of the more obscure Latin words, consectetur, from a Lorem
-                Ipsum passage, and going through the cites of the word in
-                classical literature, discovered the undoubtable source. Lorem
-                Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus
-                Bonorum et Malorum" (The Extremes of Good and Evil).
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
+      {/* Hero Section */}
+      <div className="p-6">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left Column - Content */}
+            <div className="space-y-8">
+              <h1 className="text-5xl font-bold leading-tight">
+                Reduce customer support by 90% with custom{" "}
+                <span className="text-blue-500">AI Agents</span>
+              </h1>
+
+              <p className="text-gray-600 text-lg">
+                Saass chatbot will help you build a custom AI agent, embed it on
+                your website and let it handle customer support, lead
+                generation, user engagement, and lot more.
               </p>
-            </Card>
 
-            {/* Bullet List Card */}
-            <Card title="Text" className="rounded-md shadow-sm">
-              <ul className="list-disc list-inside text-gray-700 space-y-2">
-                <li>
-                  There are many variations of passages of Lorem Ipsum available
-                </li>
-                <li>
-                  There are many variations of passages of Lorem Ipsum available
-                </li>
-                <li>
-                  There are many variations of passages of Lorem Ipsum available
-                </li>
-                <li>
-                  There are many variations of passages of Lorem Ipsum available
-                </li>
-              </ul>
-            </Card>
-          </div>
-
-          {/* Right Column - Image Placeholder */}
-          <div className="flex items-center justify-center">
-            <div className="w-full h-[400px] border-2 border-gray-400 flex items-center justify-center">
-              <span className="text-gray-500">Image Placeholder</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Personalized Onboarding Help</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>Friendly Pricing As You Scale</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>100% Privacy & Security</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg
+                    className="w-5 h-5 text-blue-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span>7 - Day Free Trial</span>
+                </div>
+              </div>
             </div>
+
+            {/* Right Column - Integration UI */}
+            <div className="bg-blue-50 p-8 rounded-xl">
+              <img
+                src="https://i.ibb.co/VxKN3Mj/integration-dashboard.png"
+                alt="Integration Dashboard"
+                className="w-full rounded-lg shadow-lg object-cover"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Features Section */}
+      <div className="py-20 px-6">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-4">
+              Everything You Need to Build, Customize, and Scale Your Agent in
+              One Place.
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+              >
+                <div className="text-4xl mb-4">{feature.icon}</div>
+                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>

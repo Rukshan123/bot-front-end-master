@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../Auth/msalConfig";
-import axios from "axios";
 import Loader from "../common/Loader";
 import { message } from "antd";
+import apiService from "../../services/api";
 
 const AuthRedirect = () => {
   const navigate = useNavigate();
@@ -27,17 +27,7 @@ const AuthRedirect = () => {
         });
 
         const accessToken = response.accessToken;
-
-        const checkUserResponse = await axios.get(
-          `${process.env.REACT_APP_API_URL}/api/v1/users/profile`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-            withCredentials: false,
-          }
-        );
+        const checkUserResponse = await apiService.getUserProfile(accessToken);
 
         const apiUserData = checkUserResponse.data.data;
         const entraIdFromApi = apiUserData?.entra_user_id;
