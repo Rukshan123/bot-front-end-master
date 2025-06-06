@@ -12,30 +12,27 @@ import {
 
 const { Title, Text } = Typography;
 const Profile: React.FC = () => {
-  const storedUserData = sessionStorage.getItem("userData");
-  const userData = storedUserData ? JSON.parse(storedUserData) : null;
-
-  console.log(userData);
+  const data = JSON.parse(sessionStorage.getItem("userData") || "{}");
 
   const userInfo = {
-    firstName: userData?.first_name || "",
-    lastName: userData?.last_name || "",
-    email: userData?.email || "",
-    contact: userData?.contact_number || "",
-    address: userData?.address || "",
+    firstName: data?.first_name || "",
+    lastName: data?.last_name || "",
+    email: data?.email || "",
+    contact: data?.contact_number || "",
+    address: data?.address || "",
   };
 
   const vendorInfo = {
-    name: userData?.vendor?.name || "",
-    email: userData?.vendor?.email || "",
-    contact: userData?.vendor?.contact_number || "",
-    address: userData?.vendor?.address || "",
+    name: data?.vendor?.name || "",
+    email: data?.vendor?.email || "",
+    contact: data?.vendor?.contact_number || "",
+    address: data?.vendor?.address || "",
   };
 
   return (
-    <div className="p-24 bg-gray-50 min-h-screen">
+    <div className="pl-24 pr-24 pt-5 pb-5 bg-gray-50 min-h-screen">
       <div className="w-full">
-        <Title level={1} className="text-3xl ml-10 pt-5" ellipsis>
+        <Title level={3} className="text-lg ml-10 pt-5" ellipsis>
           Profile Details
         </Title>
 

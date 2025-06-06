@@ -47,7 +47,7 @@ const AgentDashboard = () => {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 min-h-screen">
       {/* Custom Tabs */}
       <div className="flex border-b border-gray-200 mb-6 space-x-8">
         {["agents", "team"].map((key) => (
@@ -89,7 +89,7 @@ const AgentDashboard = () => {
           >
             Agent List
           </Typography.Title>
-          <div className="grid grid-cols-6 gap-4 p-10">
+          <div className="grid grid-cols-6 gap-4 p-5">
             {agents.map((agent) => (
               <AgentCard key={agent.id} agent={agent} allAgents={agents} />
             ))}

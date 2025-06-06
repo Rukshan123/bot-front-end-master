@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Menu, Button, Avatar, Dropdown, Typography } from "antd";
 import {
   UserOutlined,
@@ -13,22 +13,14 @@ import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 const { Title } = Typography;
 
 const Navbar: React.FC = () => {
-  const [visible, setVisible] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
-
-  const { instance, accounts } = useMsal();
+  const { instance } = useMsal();
   const isAuthenticated = useIsAuthenticated();
-  const user = accounts[0];
-
-  // console.log(user, "user");
-  const userDisplayName =
-    typeof user?.idTokenClaims?.["First Name"] === "string"
-      ? user.idTokenClaims["First Name"]
-      : typeof (user as any)?.["First Name"] === "string"
-      ? (user as any)["First Name"]
-      : "Account";
+  const userName = JSON.parse(
+    sessionStorage.getItem("userData") || "{}"
+  ).first_name;
 
   const handleLogout = () => {
     instance.logoutRedirect();
@@ -97,7 +89,7 @@ const Navbar: React.FC = () => {
               icon={<Avatar icon={<UserOutlined />} size="small" />}
               className="pl-2 pr-3 flex items-center gap-2 text-base h-10"
             >
-              {userDisplayName}
+              {userName}
             </Button>
           </Dropdown>
         ) : (

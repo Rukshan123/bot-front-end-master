@@ -1,4 +1,4 @@
-import { Button, Form, Input, Col, Row, Typography, message } from "antd";
+import { Button, Form, Input, Typography, message } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { AccountInfo } from "@azure/msal-browser";
@@ -26,7 +26,7 @@ function VendorRegistrationForm() {
 
   const firstName = claims?.["First Name"] || "";
   const lastName = claims?.["Last Name"] || "";
-  const email = claims?.preferred_username || "";
+  const email = claims?.["Org Email"] || "";
   const contact = claims?.["Contact Number"] || "";
   const address = `${claims?.["Street Address"] || ""}, ${
     claims?.City || ""

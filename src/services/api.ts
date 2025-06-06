@@ -46,22 +46,29 @@ interface VendorData {
 const apiService = {
   // User related APIs
   getUserProfile: async (token: string) => {
-    return axiosInstance.get("/api/v1/users/profile", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    return axiosInstance.get(
+      `${process.env.REACT_APP_API_URL}/api/v1/users/profile`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   },
 
   registerUser: async (
     token: string,
     userData: { vendor: VendorData; user: UserProfile }
   ) => {
-    return axiosInstance.post("/api/v1/users", userData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    return axiosInstance.post(
+      `${process.env.REACT_APP_API_URL}/api/v1/users`,
+      userData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
   },
 
   // Agent related APIs
