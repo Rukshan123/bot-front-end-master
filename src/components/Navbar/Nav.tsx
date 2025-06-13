@@ -23,6 +23,7 @@ const Navbar: React.FC = () => {
   ).first_name;
 
   const handleLogout = () => {
+    sessionStorage.removeItem("userData");
     instance.logoutRedirect();
   };
 

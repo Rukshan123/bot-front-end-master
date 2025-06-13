@@ -2,8 +2,8 @@ import { RobotOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 type Props = {
-  agent: { id: number; name: string };
-  allAgents: { id: number; name: string }[];
+  agent: { id: string; bot_name: string };
+  allAgents: { id: string; bot_name: string }[];
 };
 
 const AgentCard = ({ agent, allAgents }: Props) => {
@@ -25,7 +25,9 @@ const AgentCard = ({ agent, allAgents }: Props) => {
           <RobotOutlined />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-800">{agent.name}</h3>
+          <h3 className="text-md font-semibold text-gray-800">
+            {agent.bot_name}
+          </h3>
           <p className="text-sm text-gray-500">AI Agent</p>
         </div>
       </div>

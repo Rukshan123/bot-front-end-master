@@ -16,7 +16,7 @@ const AuthRedirect = () => {
       const user = accounts[0];
 
       if (!user) {
-        navigate("/vendor-registration");
+        navigate("/login");
         return;
       }
 
@@ -34,7 +34,6 @@ const AuthRedirect = () => {
             return;
           }
         } catch (e) {
-          // If there's an error parsing the cached data, clear it and continue with API call
           sessionStorage.removeItem("userData");
         }
       }
@@ -57,10 +56,13 @@ const AuthRedirect = () => {
           messageApi.success("Welcome back!");
           navigate("/home", { state: apiUserData });
         } else {
+          // New user case - clear session storage
+          sessionStorage.removeItem("userData");
           navigate("/vendor-registration");
         }
       } catch (error: any) {
         console.error("Error checking user:", error);
+
         // Check if we have cached data again in case the error was a timeout
         const cachedData = sessionStorage.getItem("userData");
         if (cachedData) {
@@ -74,7 +76,6 @@ const AuthRedirect = () => {
               oidFromMsal &&
               entraIdFromApi === oidFromMsal
             ) {
-              // If we have valid cached data, use it despite the API error
               messageApi.warning(
                 "Using cached profile data due to network issue"
               );
@@ -82,21 +83,32 @@ const AuthRedirect = () => {
               return;
             }
           } catch (e) {
-            // If there's an error parsing the cached data, clear it
             sessionStorage.removeItem("userData");
+            navigate("/login");
           }
         }
 
-        if (error.code === "ECONNABORTED") {
+        // Handle API errors
+        if (error.response?.status === 404) {
+          // User not found - clear session and redirect to vendor registration
+          sessionStorage.removeItem("userData");
+          navigate("/vendor-registration");
+        } else if (error.code === "ECONNABORTED") {
           messageApi.error(
             "Request timeout. Please check your internet connection and try again."
           );
+          navigate("/login");
         } else if (error.code === "ERR_NETWORK") {
           messageApi.error(
             "Network error. The server might be unavailable. Please try again later."
           );
+          navigate("/login");
+        } else {
+          messageApi.error(
+            "An error occurred while checking your profile. Please try again."
+          );
+          navigate("/login");
         }
-        navigate("/vendor-registration");
       }
     };
 

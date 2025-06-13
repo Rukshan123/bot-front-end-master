@@ -1,9 +1,17 @@
-import { Input, Switch, Form } from "antd";
-import { FC, useEffect } from "react";
+import { Input, Switch, Form, Select } from "antd";
+import { FC, useEffect, useState } from "react";
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "../../../Auth/msalConfig";
+import apiService from "../../../services/api";
+
+interface LanguageModel {
+  id: number;
+  llm_name: string;
+}
 
 interface TextFormData {
   name: string;
-  trainingText: string;
+  languageModelId: number;
   whatsappNumber?: string;
   enableWhatsApp: boolean;
 }
@@ -15,10 +23,34 @@ interface Props {
 
 const TextAgentForm: FC<Props> = ({ formData, onChange }) => {
   const [form] = Form.useForm();
+  const { instance, accounts } = useMsal();
+  const [languageModels, setLanguageModels] = useState<LanguageModel[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchLanguageModels();
+  }, []);
 
   useEffect(() => {
     form.setFieldsValue(formData);
   }, [form, formData]);
+
+  const fetchLanguageModels = async () => {
+    setLoading(true);
+    try {
+      const token = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0],
+      });
+
+      const response = await apiService.getLanguageModels(token.accessToken);
+      setLanguageModels(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching language models:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleFormChange = () => {
     const values = form.getFieldsValue();
@@ -43,10 +75,18 @@ const TextAgentForm: FC<Props> = ({ formData, onChange }) => {
       </Form.Item>
 
       <Form.Item
-        name="trainingText"
-        rules={[{ required: true, message: "Please enter training text" }]}
+        name="languageModelId"
+        rules={[{ required: true, message: "Please select a language model" }]}
       >
-        <Input.TextArea rows={6} placeholder="Enter text to train the bot" />
+        <Select
+          className="h-12"
+          placeholder="Select Language Model"
+          loading={loading}
+          options={languageModels.map((model) => ({
+            value: model.id,
+            label: model.llm_name,
+          }))}
+        />
       </Form.Item>
 
       <div className="flex items-center gap-2 mb-4">

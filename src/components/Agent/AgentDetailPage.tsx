@@ -60,9 +60,9 @@ const AgentDetailPage = () => {
             className="w-full p-2 border rounded bg-gray-50 text-gray-800"
             value={agent?.id || ""}
             onChange={(e) => {
-              const selectedId = Number(e.target.value);
+              const selectedId = e.target.value;
               const selectedAgent = allAgents.find(
-                (a: any) => a.id === selectedId
+                (a: any) => String(a.id) === String(selectedId)
               );
               if (selectedAgent) {
                 navigate(`/agent/${selectedAgent.id}`, {
@@ -73,7 +73,7 @@ const AgentDetailPage = () => {
           >
             {allAgents.map((a: any) => (
               <option key={a.id} value={a.id}>
-                {a.name}
+                {a.bot_name}
               </option>
             ))}
           </select>

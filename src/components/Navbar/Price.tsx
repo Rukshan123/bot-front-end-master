@@ -87,7 +87,7 @@ function Price() {
                 : "border hover:shadow-md"
             } transition-all duration-300`}
             title={
-              <div className="text-center">
+              <div className="text-left">
                 {tier.popular && (
                   <Badge.Ribbon
                     text="Most popular"

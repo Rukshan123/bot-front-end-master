@@ -20,10 +20,14 @@ interface FileFormData {
   files: UploadFile[];
 }
 
-interface CreateAgentData {
+interface TrainAgentData {
   textData: TextFormData;
   qaData: QnAFormData;
   fileData: FileFormData;
+}
+
+interface CreateAgentData {
+  textData: TextFormData;
 }
 
 interface UserProfile {
@@ -70,14 +74,26 @@ const apiService = {
       }
     );
   },
-
   // Agent related APIs
-  createAgent: async (token: string, agentData: CreateAgentData) => {
-    return axiosInstance.post("/api/v1/agents", agentData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  createAgent: async (
+    token: string,
+    vendorId: string,
+    agentData: {
+      language_model_id: number;
+      bot_name: string;
+      whatsapp_number?: string;
+    }
+  ) => {
+    return axiosInstance.post(
+      `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots`,
+      agentData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
   },
 
   getAgents: async (token: string) => {
@@ -96,10 +112,21 @@ const apiService = {
     });
   },
 
+  getBotsByVendorId: async (token: string, vendorId: string) => {
+    return axiosInstance.get(
+      `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+
   updateAgent: async (
     token: string,
     agentId: string,
-    agentData: Partial<CreateAgentData>
+    agentData: Partial<TrainAgentData>
   ) => {
     return axiosInstance.put(`/api/v1/agents/${agentId}`, agentData, {
       headers: {
@@ -110,6 +137,51 @@ const apiService = {
 
   deleteAgent: async (token: string, agentId: string) => {
     return axiosInstance.delete(`/api/v1/agents/${agentId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  trainAgent: async (
+    token: string,
+    vendorId: { id: string },
+    botId: string,
+    trainingData: {
+      qna?: string;
+      text?: string;
+      "deleted-content"?: string;
+    }
+  ) => {
+    const formData = new FormData();
+    if (trainingData.qna) formData.append("qna", trainingData.qna);
+    if (trainingData.text) formData.append("text", trainingData.text);
+    if (trainingData["deleted-content"])
+      formData.append("deleted-content", trainingData["deleted-content"]);
+
+    return axiosInstance.put(
+      `/api/v1/vendors/${vendorId.id}/bots/${botId}/retrain`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+  },
+
+  // Language Models related APIs
+  getLanguageModels: async (token: string) => {
+    return axiosInstance.get(`${process.env.REACT_APP_API_URL}/api/v1/llms`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  checkUserStatus: async (token: string) => {
+    return axiosInstance.get(`${process.env.REACT_APP_API_URL}/user/status`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

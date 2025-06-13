@@ -1,5 +1,14 @@
-import { useState } from "react";
-import { Button, Modal, Input, Form, Space, Select, Typography } from "antd";
+import { useState, useEffect } from "react";
+import {
+  Button,
+  Modal,
+  Input,
+  Form,
+  Space,
+  Select,
+  Typography,
+  message,
+} from "antd";
 import {
   PlusOutlined,
   RobotOutlined,
@@ -8,15 +17,53 @@ import {
 import AgentCard from "./AgentCard";
 import TeamMembersTable from "./TeamMembersTable";
 import { Link } from "react-router-dom";
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "../../Auth/msalConfig";
+import apiService from "../../services/api";
+
+interface Agent {
+  id: string;
+  bot_name: string;
+  [key: string]: any;
+}
 
 const AgentDashboard = () => {
   const [tab, setTab] = useState<"agents" | "team">("agents");
+  const { instance, accounts } = useMsal();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [isLoading, setIsLoading] = useState(false);
+  const [agents, setAgents] = useState<Agent[]>([]);
 
-  const [agents] = useState([
-    { id: 1, name: "Bot 01" },
-    { id: 2, name: "Bot 02" },
-    { id: 3, name: "Bot 03" },
-  ]);
+  useEffect(() => {
+    const fetchBots = async () => {
+      try {
+        const user = accounts[0];
+        const token = await instance.acquireTokenSilent({
+          ...loginRequest,
+          account: user,
+        });
+
+        const data = JSON.parse(sessionStorage.getItem("userData") || "{}");
+        const vendorId = data?.vendor?.id;
+
+        if (!vendorId) {
+          messageApi.error("Vendor ID not found");
+          return;
+        }
+
+        const response = await apiService.getBotsByVendorId(
+          token.accessToken,
+          vendorId
+        );
+        setAgents(response.data.data || []);
+      } catch (error) {
+        console.error("Error fetching bots:", error);
+        messageApi.error("Failed to fetch bots");
+      }
+    };
+
+    fetchBots();
+  }, [instance, accounts, messageApi]);
 
   const [members, setMembers] = useState([
     {
@@ -48,6 +95,7 @@ const AgentDashboard = () => {
 
   return (
     <div className="p-8 min-h-screen">
+      {contextHolder}
       {/* Custom Tabs */}
       <div className="flex border-b border-gray-200 mb-6 space-x-8">
         {["agents", "team"].map((key) => (
