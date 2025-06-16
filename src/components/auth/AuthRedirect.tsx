@@ -79,7 +79,7 @@ const AuthRedirect = () => {
               messageApi.warning(
                 "Using cached profile data due to network issue"
               );
-              navigate("/home", { state: userData });
+              navigate("/logn", { state: userData });
               return;
             }
           } catch (e) {

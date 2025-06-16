@@ -31,9 +31,6 @@ const AgentDetailPage = () => {
   const agent = location.state?.agent;
   const allAgents = location.state?.allAgents;
 
-  console.error(agent, "agent");
-  console.error(allAgents, "allAgents");
-
   const renderContent = () => {
     switch (active) {
       case "agent":
@@ -52,12 +49,12 @@ const AgentDetailPage = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f8f9fc]">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#f8f9fc]">
       {/* Sidebar */}
-      <div className="w-[280px] bg-white border-r p-4 space-y-10 shadow-sm">
+      <div className="w-full md:w-[280px] bg-white border-b md:border-r p-4 space-y-6 md:space-y-10 shadow-sm">
         <div className="mb-4">
           <select
-            className="w-full p-2 border rounded bg-gray-50 text-gray-800"
+            className="w-full p-2 border rounded bg-gray-50 text-gray-800 text-sm md:text-base"
             value={agent?.id || ""}
             onChange={(e) => {
               const selectedId = e.target.value;
@@ -80,34 +77,37 @@ const AgentDetailPage = () => {
         </div>
 
         <button
-          className="flex items-center space-x-2 text-blue-600 hover:text-blue-800"
+          className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 text-sm md:text-base"
           onClick={() => navigate(-1)}
         >
           <span className="text-lg">←</span>
           <span>Back</span>
         </button>
 
-        {navItems.map((item) => (
-          <div
-            key={item.key}
-            onClick={() => setActive(item.key)}
-            className={`flex items-center group cursor-pointer px-4 py-3 rounded-lg ${
-              active === item.key
-                ? "bg-blue-100 text-blue-600 font-semibold"
-                : "text-gray-700 hover:bg-gray-100"
-            }`}
-          >
-            <div className="flex items-center space-x-4 text-[18px] w-full font-bold">
-              <div className="text-3xl"> {item.icon}</div>
-              <span>{item.label}</span>
+        <div className="flex md:flex-col overflow-x-auto md:overflow-x-visible space-x-4 md:space-x-0 gap-6">
+          {navItems.map((item) => (
+            <div
+              key={item.key}
+              onClick={() => setActive(item.key)}
+              className={`flex items-center group cursor-pointer px-3 md:px-4 py-3 md:py-4 rounded-lg whitespace-nowrap
+              ${
+                active === item.key
+                  ? "bg-blue-100 text-blue-600 font-semibold"
+                  : "text-gray-700 hover:bg-gray-100"
+              }`}
+            >
+              <div className="flex items-center space-x-2 md:space-x-4 text-[16px] md:text-[18px] w-full font-bold">
+                <div className="text-2xl md:text-3xl">{item.icon}</div>
+                <span>{item.label}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-6">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800 capitalize">
+      <div className="flex-1 p-4 md:p-6 overflow-auto">
+        <h1 className="text-xl md:text-2xl font-bold mb-4 text-gray-800 capitalize">
           {active.replace(/([A-Z])/g, " $1")}
         </h1>
         {renderContent()}

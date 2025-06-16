@@ -34,13 +34,13 @@ function Integrations() {
             className="w-60 shadow-md hover:shadow-xl transition-shadow duration-300 border border-gray-200 rounded-xl cursor-pointer bg-white group"
             bodyStyle={{
               display: "flex",
-              alignItems: "center",
+              alignItems: "flex-start",
               gap: "0.5rem",
               padding: "1rem",
             }}
             hoverable
           >
-            <div>{item.icon}</div>
+            <div className="mt-1">{item.icon}</div>
             <div>
               <div className="font-semibold text-lg text-gray-800 group-hover:text-blue-600 mb-1">
                 {item.title}

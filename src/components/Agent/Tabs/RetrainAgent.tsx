@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TrainBotSection from "../CreateAgent/TrainBotSection";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../../Auth/msalConfig";
@@ -33,10 +33,36 @@ function RetrainAgent() {
     questions: [{ question: "", answer: "" }],
   });
   const [fileFormData, setFileFormData] = useState({ files: [] });
+  const [knowledgeData, setKnowledgeData] = useState<any[]>([]);
 
   // You may want to get vendorId from props, context, or location
   const data = JSON.parse(sessionStorage.getItem("userData") || "{}");
   const vendorId = { id: data?.vendor?.id || "" };
+
+  useEffect(() => {
+    fetchKnowledgeData();
+  }, [id]);
+
+  const fetchKnowledgeData = async () => {
+    try {
+      const token = await instance.acquireTokenSilent({
+        ...loginRequest,
+        account: accounts[0],
+      });
+
+      const response = await apiService.getTrainingData(
+        token.accessToken,
+        data?.vendor?.id || "",
+        id || ""
+      );
+      setKnowledgeData(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching language models:", error);
+    } finally {
+      // setLoading(false);
+      console.log(knowledgeData);
+    }
+  };
 
   const handleTrainBot = async () => {
     const hasTextData = trainingText.trim();
@@ -92,7 +118,7 @@ function RetrainAgent() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 max-w-4xl mx-auto h-full flex flex-col pt-10">
+    <div className="bg-white rounded-xl shadow-sm p-6 max-w-4xl mx-auto flex flex-col pt-10">
       <MessageBox
         type={messageState.type}
         message={messageState.message || ""}

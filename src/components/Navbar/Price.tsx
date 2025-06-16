@@ -1,122 +1,108 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Button, Badge } from "antd";
 import { CheckOutlined } from "@ant-design/icons";
+import apiService from "../../services/api";
+import { useMsal } from "@azure/msal-react";
+import { loginRequest } from "../../Auth/msalConfig";
 
 interface PricingTier {
+  id: number;
   name: string;
   price: string;
-  originalPrice?: string;
-  period: string;
-  features: string[];
-  popular?: boolean;
+  discount: string;
+  msg_credit_per_month: number;
+  agents: number;
+  bots: number;
+  characters_per_month: number;
+  team_members: number;
+  ai_actions: number;
+  version: number;
+  status: string;
 }
 
 function Price() {
-  const pricingTiers: PricingTier[] = [
-    {
-      name: "Free",
-      price: "0",
-      period: "",
-      features: [
-        "Access to fast models",
-        "15 message credits",
-        "1 agents",
-        "1 Team members",
-        "500,000 characters/agent",
-        "Limit to 500 links to train on",
-        "Embed on unlimited websites",
-        "Upload multiple files",
-        "Capture leads",
-        "View conversation history",
-      ],
-    },
-    {
-      name: "Hobby",
-      price: "120",
-      originalPrice: "190",
-      period: "/year",
-      features: [
-        "Access to advanced models",
-        "2,000 message credits/month",
-        "2 agents",
-        "2,000,000 characters/agent",
-        "Unlimited links to train on",
-      ],
-    },
-    {
-      name: "Standard",
-      price: "600",
-      originalPrice: "990",
-      period: "/year",
-      popular: true,
-      features: [
-        "10,000 message credits/month",
-        "5 agents",
-        "10 AI Actions/agent",
-        "3 Team members",
-        "6,000,000 characters/agent",
-        "Integrations",
-        "API access",
-      ],
-    },
-    {
-      name: "Pro",
-      price: "2400",
-      originalPrice: "3990",
-      period: "/year",
-      features: [
-        "40,000 message credits/month",
-        "10 agents",
-        "15 AI Actions/agent",
-        "5 Team members",
-        "11,000,000 characters/agent",
-        "Remove 'Powered by Sass Chatbot'",
-      ],
-    },
-  ];
+  const [pricingTiers, setPricingTiers] = useState<PricingTier[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { instance, accounts } = useMsal();
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        if (accounts.length > 0) {
+          const response = await instance.acquireTokenSilent({
+            ...loginRequest,
+            account: accounts[0],
+          });
+
+          const plansResponse = await apiService.getPlans(response.accessToken);
+          if (plansResponse.data.success) {
+            setPricingTiers(plansResponse.data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching plans:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, [instance, accounts]);
+
+  const formatFeatures = (tier: PricingTier) => {
+    return [
+      `${tier.msg_credit_per_month.toLocaleString()} message credits/month`,
+      `${tier.agents} agents`,
+      `${tier.bots} bots`,
+      `${tier.characters_per_month.toLocaleString()} characters/month`,
+      `${tier.team_members} team members`,
+      `${tier.ai_actions} AI actions`,
+    ];
+  };
+
+  if (loading) {
+    return <div className="text-center py-8">Loading plans...</div>;
+  }
 
   return (
     <div className="max-w-[1400px] mx-auto px-4 py-16">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {pricingTiers.map((tier) => (
           <Card
-            key={tier.name}
-            className={`h-full min-w-[280px] ${
-              tier.popular
+            key={tier.id}
+            className={`h-full min-w-[380px] ${
+              tier.status === "ACTIVE"
                 ? "border-2 border-blue-500 shadow-lg transform hover:scale-105"
                 : "border hover:shadow-md"
             } transition-all duration-300`}
             title={
               <div className="text-left">
-                {tier.popular && (
+                {tier.status === "ACTIVE" && (
                   <Badge.Ribbon
-                    text="Most popular"
+                    text="Active"
                     color="blue"
                     className="text-base"
                   />
                 )}
                 <h3 className="text-2xl font-semibold mb-3">{tier.name}</h3>
                 <div className="flex items-center justify-center gap-2">
-                  {tier.originalPrice && (
+                  {tier.discount && (
                     <span className="text-gray-400 line-through text-xl">
-                      ${tier.originalPrice}
+                      $
+                      {(
+                        parseFloat(tier.price) + parseFloat(tier.discount)
+                      ).toFixed(2)}
                     </span>
                   )}
                   <span className="text-5xl font-bold">${tier.price}</span>
-                  <span className="text-gray-600 text-lg">{tier.period}</span>
+                  <span className="text-gray-600 text-lg">/month</span>
                 </div>
               </div>
             }
           >
             <div className="space-y-4">
-              {tier.name !== "Free" && (
-                <p className="text-gray-600 mb-4 text-lg">
-                  Everything in {tier.name === "Hobby" ? "Free" : "Hobby"} and
-                  ...
-                </p>
-              )}
               <ul className="space-y-4">
-                {tier.features.map((feature) => (
+                {formatFeatures(tier).map((feature) => (
                   <li key={feature} className="flex items-start gap-3">
                     <CheckOutlined className="text-blue-500 mt-1.5 text-lg" />
                     <span className="text-lg">{feature}</span>
@@ -125,11 +111,11 @@ function Price() {
               </ul>
               <div className="pt-8">
                 <Button
-                  type={tier.popular ? "primary" : "default"}
+                  type={tier.status === "ACTIVE" ? "primary" : "default"}
                   block
                   size="large"
                   className={`text-lg h-12 ${
-                    tier.popular ? "bg-blue-500" : ""
+                    tier.status === "ACTIVE" ? "bg-blue-500" : ""
                   }`}
                 >
                   Get Started

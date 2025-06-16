@@ -94,20 +94,20 @@ const AgentDashboard = () => {
   };
 
   return (
-    <div className="p-8 min-h-screen">
+    <div className="p-4 md:p-8 min-h-screen">
       {contextHolder}
       {/* Custom Tabs */}
-      <div className="flex border-b border-gray-200 mb-6 space-x-8">
+      <div className="flex border-b border-gray-200 mb-6 space-x-4 md:space-x-8">
         {["agents", "team"].map((key) => (
           <div
             key={key}
             onClick={() => setTab(key as "agents" | "team")}
-            className={`relative pb-2 cursor-pointer font-medium text-lg text-center w-80
+            className={`relative pb-2 cursor-pointer font-medium text-base md:text-lg text-center w-40 md:w-80
         ${tab === key ? "text-blue-600" : "text-gray-500 hover:text-blue-500"}`}
           >
             {key === "agents" ? "Agents" : "Team Members"}
             <span
-              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-60 ${
+              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 md:w-60 ${
                 tab === key ? "border-b-[4px] border-blue-600" : "border-b-0"
               }`}
             ></span>
@@ -118,26 +118,32 @@ const AgentDashboard = () => {
       {/* Agents View */}
       {tab === "agents" && (
         <>
-          <div className="grid grid-cols-6 gap-4 mb-6 p-10">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-6 p-2 md:p-6 mt-6 md:mt-12">
             <Link to="/createAgent">
-              <div className="border p-4 text-center hover:shadow cursor-pointer default-btn flex flex-col items-center justify-center bg-slate-100 rounded-md">
-                <RobotOutlined style={{ fontSize: 40 }} />
-                <div className="mt-5">
-                  Try the bot
-                  <PlusOutlined className="ml-3" style={{ fontSize: 15 }} />
+              <Button
+                type="primary"
+                className="border p-4 md:p-6 text-center hover:shadow cursor-pointer default-btn flex flex-col items-center justify-center rounded-md w-full"
+              >
+                <RobotOutlined style={{ fontSize: 32 }} />
+                <div className="mt-3 md:mt-5 text-base md:text-lg font-semibold">
+                  Create a new agent
+                  <PlusOutlined
+                    className="ml-2 md:ml-3"
+                    style={{ fontSize: 15 }}
+                  />
                 </div>
-              </div>
+              </Button>
             </Link>
           </div>
 
           <Typography.Title
-            className="pl-10 pr-10"
+            className="px-4 md:px-10"
             level={3}
             style={{ margin: 0 }}
           >
             Agent List
           </Typography.Title>
-          <div className="grid grid-cols-6 gap-4 p-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-2 md:p-5">
             {agents.map((agent) => (
               <AgentCard key={agent.id} agent={agent} allAgents={agents} />
             ))}
@@ -148,7 +154,7 @@ const AgentDashboard = () => {
       {/* Team Members View */}
       {tab === "team" && (
         <>
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-4 px-2 md:px-0">
             <Button
               type="primary"
               icon={<UserAddOutlined />}
@@ -157,7 +163,9 @@ const AgentDashboard = () => {
               Invite Members
             </Button>
           </div>
-          <TeamMembersTable members={members} onDelete={handleDelete} />
+          <div className="px-2 md:px-0">
+            <TeamMembersTable members={members} onDelete={handleDelete} />
+          </div>
         </>
       )}
 

@@ -171,6 +171,21 @@ const apiService = {
     );
   },
 
+  getTrainingData: async (
+    token: string,
+    vendorId: { id: string },
+    botId: string
+  ) => {
+    return axiosInstance.get(
+      `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots/${botId}/knowledge`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  },
+
   // Language Models related APIs
   getLanguageModels: async (token: string) => {
     return axiosInstance.get(`${process.env.REACT_APP_API_URL}/api/v1/llms`, {
@@ -182,6 +197,14 @@ const apiService = {
 
   checkUserStatus: async (token: string) => {
     return axiosInstance.get(`${process.env.REACT_APP_API_URL}/user/status`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  getPlans: async (token: string) => {
+    return axiosInstance.get(`${process.env.REACT_APP_API_URL}/api/v1/plans`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

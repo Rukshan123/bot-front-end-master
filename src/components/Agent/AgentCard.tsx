@@ -18,17 +18,17 @@ const AgentCard = ({ agent, allAgents }: Props) => {
           state: { agent, allAgents }, // ✅ pass both agent and agent list
         })
       }
-      className="rounded-xl shadow-md bg-white hover:shadow-xl transition transform hover:scale-105 cursor-pointer border p-5"
+      className="rounded-xl shadow-md bg-white hover:shadow-xl transition transform hover:scale-105 cursor-pointer border p-3 md:p-5"
     >
-      <div className="flex items-center space-x-4">
-        <div className="bg-blue-100 text-blue-600 rounded-full p-3 text-xl">
+      <div className="flex items-center space-x-3 md:space-x-4">
+        <div className="bg-blue-100 text-blue-600 rounded-full p-2 md:p-3 text-lg md:text-xl">
           <RobotOutlined />
         </div>
         <div>
-          <h3 className="text-md font-semibold text-gray-800">
+          <h3 className="text-sm md:text-md font-semibold text-gray-800 truncate">
             {agent.bot_name}
           </h3>
-          <p className="text-sm text-gray-500">AI Agent</p>
+          <p className="text-xs md:text-sm text-gray-500">AI Agent</p>
         </div>
       </div>
     </div>
