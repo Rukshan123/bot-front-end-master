@@ -189,13 +189,6 @@ const AgentDashboard = () => {
             >
                 <Form form={form} layout="vertical" onFinish={handleInvite}>
                     <Form.Item
-                        name="name"
-                        label="Name"
-                        rules={[{ required: true }]}
-                    >
-                        <Input />
-                    </Form.Item>
-                    <Form.Item
                         name="email"
                         label="Email"
                         rules={[{ required: true }]}

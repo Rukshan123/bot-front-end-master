@@ -11,6 +11,7 @@ import {
     FileOutlined,
     MessageOutlined,
 } from "@ant-design/icons";
+import { UploadFile } from "antd";
 
 interface KnowledgeItem {
     vector_db_id: string;
@@ -23,10 +24,7 @@ interface KnowledgeItem {
 }
 
 interface FileFormData {
-    files: Array<{
-        name: string;
-        url?: string;
-    }>;
+    files: UploadFile[];
 }
 
 const tabs = [
@@ -94,14 +92,21 @@ function RetrainAgent() {
             }
 
             const fileData = fetchedData.filter((item) => item.type === "file");
+            console.log(fileData, "fileData");
             if (fileData.length > 0) {
                 setFileFormData({
-                    files: fileData.map((fileItem) => ({
+                    files: fileData.map((fileItem, index) => ({
+                        uid:
+                            fileItem.vector_db_id ||
+                            fileItem.url ||
+                            "file_" + index,
                         name: fileItem.url?.split("/").pop() || "uploaded_file",
                         url: fileItem.url,
+                        status: "done",
                     })),
                 });
             } else {
+                console.log("setFileFormData({ files: [] });");
                 setFileFormData({ files: [] });
             }
         } catch (error) {
@@ -223,31 +228,26 @@ function RetrainAgent() {
                 answer: q.answer.trim(),
             }));
 
-        const newFiles = fileFormData.files
-            .map((f) => f.url?.trim())
-            .filter(Boolean) as string[];
+        const newFiles = fileFormData.files.filter((f) => f.originFileObj);
 
-        // Get original data for comparison
         const originalQnAs = knowledgeData
             .filter((k) => k.type === "qna")
             .map((item) => ({
                 question: item.question?.trim() || "",
                 answer: item.answer?.trim() || "",
             }));
+
         const originalFiles = knowledgeData
             .filter((k) => k.type === "file")
             .map((k) => k.url?.trim())
             .filter(Boolean)
             .sort();
 
-        // Strict comparison of actual content
         const hasTextChanged = trimmedText !== originalText.trim();
         const hasQnaChanged =
             JSON.stringify(cleanedNewQnAs) !== JSON.stringify(originalQnAs);
-        const hasFilesChanged =
-            JSON.stringify(newFiles.sort()) !== JSON.stringify(originalFiles);
+        const hasFilesChanged = newFiles.length > 0;
 
-        // Check if any data has actually changed
         if (!hasTextChanged && !hasQnaChanged && !hasFilesChanged) {
             showError(
                 "No changes detected. Please update at least one section before retraining."
@@ -264,20 +264,22 @@ function RetrainAgent() {
                 account: accounts[0],
             });
 
-            const trainingData: any = {};
+            const trainingData: {
+                qna?: string;
+                text?: string;
+                files?: UploadFile[];
+                "deleted-content"?: string;
+            } = {};
+
             const deletedContent: Array<{
                 type: string;
                 vector_db_id: string;
             }> = [];
 
-            // Only include changed data in the request
             if (hasTextChanged) {
                 trainingData.text = trimmedText;
-
-                const textEntries = knowledgeData.filter(
-                    (k) => k.type === "text"
-                );
-                textEntries.forEach((entry) => {
+                const entries = knowledgeData.filter((k) => k.type === "text");
+                entries.forEach((entry) => {
                     if (entry.vector_db_id) {
                         deletedContent.push({
                             type: "text",
@@ -289,11 +291,8 @@ function RetrainAgent() {
 
             if (hasQnaChanged) {
                 trainingData.qna = JSON.stringify(cleanedNewQnAs);
-
-                const qnaEntries = knowledgeData.filter(
-                    (k) => k.type === "qna"
-                );
-                qnaEntries.forEach((entry) => {
+                const entries = knowledgeData.filter((k) => k.type === "qna");
+                entries.forEach((entry) => {
                     if (entry.vector_db_id) {
                         deletedContent.push({
                             type: "qna",
@@ -304,13 +303,10 @@ function RetrainAgent() {
             }
 
             if (hasFilesChanged) {
-                trainingData.files = newFiles;
+                trainingData.files = newFiles as UploadFile[];
 
-                // Add logic to delete old files
-                const fileEntries = knowledgeData.filter(
-                    (k) => k.type === "file"
-                );
-                fileEntries.forEach((entry) => {
+                const entries = knowledgeData.filter((k) => k.type === "file");
+                entries.forEach((entry) => {
                     if (entry.vector_db_id) {
                         deletedContent.push({
                             type: "file",
@@ -320,70 +316,74 @@ function RetrainAgent() {
                 });
             }
 
+            // ✅ Set deleted-content
             if (deletedContent.length > 0) {
                 trainingData["deleted-content"] =
                     JSON.stringify(deletedContent);
             }
 
-            // Only make the API call if we have actual changes to send
-            if (Object.keys(trainingData).length > 0) {
-                const response = await apiService.trainAgent(
-                    token.accessToken,
-                    vendorId,
-                    id || "",
-                    trainingData
-                );
+            // ✅ Log debug info
+            console.log("Submitting training data:", {
+                ...trainingData,
+                files: trainingData.files?.map((f) => f.name),
+            });
 
-                // Fetch updated data after successful training
-                await fetchKnowledgeData();
+            // ✅ Submit to API
+            const response = await apiService.trainAgent(
+                token.accessToken,
+                vendorId,
+                id || "",
+                trainingData
+            );
 
-                const jobId = response?.data?.data?.jobId;
-                const startTime = Date.now();
-                const timeoutDuration = 10 * 60 * 1000;
-                const pollInterval = 5000;
+            await fetchKnowledgeData();
 
-                const checkJobStatus = async () => {
-                    try {
-                        const jobStatus = await apiService.getRetainJobStatus(
-                            token.accessToken,
-                            vendorId.id,
-                            id || "",
-                            String(jobId)
+            const jobId = response?.data?.data?.jobId;
+            const startTime = Date.now();
+            const timeoutDuration = 10 * 60 * 1000;
+            const pollInterval = 5000;
+
+            const checkJobStatus = async (): Promise<boolean> => {
+                try {
+                    const jobStatus = await apiService.getRetainJobStatus(
+                        token.accessToken,
+                        vendorId.id,
+                        id || "",
+                        String(jobId)
+                    );
+
+                    const status = jobStatus?.data?.data?.status;
+                    const currentTime = Date.now();
+
+                    if (status === "SUCCESS" || status === "COMPLETED") {
+                        showSuccess("Bot training completed successfully!");
+                        return true;
+                    } else if (status === "FAILED") {
+                        showError("Bot training failed. Please try again.");
+                        return true;
+                    } else if (currentTime - startTime >= timeoutDuration) {
+                        showError(
+                            "Training timeout after 10 minutes. Please check status later."
                         );
-
-                        const status = jobStatus?.data?.data?.status;
-                        const currentTime = Date.now();
-
-                        if (status === "SUCCESS" || status === "COMPLETED") {
-                            showSuccess("Bot training completed successfully!");
-                            return true;
-                        } else if (status === "FAILED") {
-                            showError("Bot training failed. Please try again.");
-                            return true;
-                        } else if (currentTime - startTime >= timeoutDuration) {
-                            showError(
-                                "Training timeout after 10 minutes. Please check status later."
-                            );
-                            return true;
-                        }
-
-                        return false;
-                    } catch (error) {
-                        console.error("Error checking job status:", error);
-                        showError(extractErrorMessage(error));
                         return true;
                     }
-                };
 
-                const pollJobStatus = async () => {
-                    const shouldStop = await checkJobStatus();
-                    if (!shouldStop) {
-                        setTimeout(pollJobStatus, pollInterval);
-                    }
-                };
+                    return false;
+                } catch (error) {
+                    console.error("Error checking job status:", error);
+                    showError(extractErrorMessage(error));
+                    return true;
+                }
+            };
 
-                await pollJobStatus();
-            }
+            const pollJobStatus = async () => {
+                const shouldStop = await checkJobStatus();
+                if (!shouldStop) {
+                    setTimeout(pollJobStatus, pollInterval);
+                }
+            };
+
+            await pollJobStatus();
         } catch (error: any) {
             console.error("Error training bot:", error);
             showError(error?.message || "Training failed");

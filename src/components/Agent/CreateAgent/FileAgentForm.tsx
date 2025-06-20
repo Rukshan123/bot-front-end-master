@@ -13,6 +13,7 @@ interface Props {
 }
 
 const FileAgentForm: FC<Props> = ({ formData, onChange }) => {
+    console.log(formData, "file form data");
     const handleChange = (info: UploadChangeParam<UploadFile>) => {
         onChange({ files: info.fileList });
     };

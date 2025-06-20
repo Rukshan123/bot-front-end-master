@@ -141,117 +141,116 @@ const CreateAgent = () => {
     };
 
     const handleTrainBot = async () => {
-        if (activeSection === "train") {
-            const hasTextData = trainingText.trim();
-            const hasQAData = qaFormData.questions.some(
-                (q) => q.question.trim() && q.answer.trim()
-            );
-            const hasFileData = fileFormData.files.length > 0;
+        if (activeSection !== "train") return;
 
-            if (!hasTextData && !hasQAData && !hasFileData) {
-                showError("Please provide training data in at least one tab");
-                return;
+        const hasTextData = trainingText.trim();
+        const hasQAData = qaFormData.questions.some(
+            (q) => q.question.trim() && q.answer.trim()
+        );
+        const hasFileData = fileFormData.files.some((f) => f.originFileObj);
+
+        if (!hasTextData && !hasQAData && !hasFileData) {
+            showError("Please provide training data in at least one tab");
+            return;
+        }
+
+        setIsLoading(true);
+        showInfo("Training bot...");
+
+        try {
+            const token = await instance.acquireTokenSilent({
+                ...loginRequest,
+                account: accounts[0],
+            });
+
+            const formData = new FormData();
+
+            if (hasTextData) {
+                formData.append("text", trainingText.trim());
             }
 
-            setIsLoading(true);
-            showInfo("Training bot...");
+            if (hasQAData) {
+                const qa = qaFormData.questions
+                    .filter((q) => q.question.trim() && q.answer.trim())
+                    .map((q) => ({
+                        question: q.question.trim(),
+                        answer: q.answer.trim(),
+                    }));
+                formData.append("qna", JSON.stringify(qa));
+            }
 
-            try {
-                const token = await instance.acquireTokenSilent({
-                    ...loginRequest,
-                    account: accounts[0],
+            if (hasFileData) {
+                fileFormData.files.forEach((file) => {
+                    if (file.originFileObj) {
+                        formData.append("files", file.originFileObj);
+                    }
                 });
+            }
 
-                const trainingData: any = {};
+            const response = await apiService.trainAgent(
+                token.accessToken,
+                vendorId,
+                botId || "",
+                formData
+            );
 
-                if (hasQAData) {
-                    trainingData.qna = JSON.stringify(
-                        qaFormData.questions.filter(
-                            (q) => q.question.trim() && q.answer.trim()
-                        )
+            const successMessage =
+                response?.data?.message || "Bot training started successfully!";
+            showSuccess(successMessage);
+
+            const jobId = response?.data?.data?.jobId;
+
+            // Polling logic
+            const startTime = Date.now();
+            const timeoutDuration = 10 * 60 * 1000;
+            const pollInterval = 5000;
+
+            const checkJobStatus = async () => {
+                try {
+                    const jobStatus = await apiService.getRetainJobStatus(
+                        token.accessToken,
+                        vendorId.id,
+                        botId || "",
+                        String(jobId)
                     );
-                }
 
-                if (hasTextData) {
-                    trainingData.text = trainingText;
-                }
-                if (hasFileData) {
-                    fileFormData.files.forEach((file) => {
-                        const rawFile = file.originFileObj as File;
-                        if (rawFile) {
-                            trainingData.files = trainingData.files || [];
-                            trainingData.files.push(rawFile);
-                        }
-                    });
-                }
+                    const status = jobStatus?.data?.data?.status;
+                    const currentTime = Date.now();
 
-                const response = await apiService.trainAgent(
-                    token.accessToken,
-                    vendorId,
-                    botId || "",
-                    trainingData
-                );
-
-                const successMessage =
-                    response?.data?.message ||
-                    "Bot training started successfully!";
-
-                const jobId = response?.data?.data?.jobId;
-                console.log(jobId, "job id");
-
-                // Poll for job status
-                const startTime = Date.now();
-                const timeoutDuration = 10 * 60 * 1000; // 10 minutes in milliseconds
-                const pollInterval = 5000; // Poll every 5 seconds
-
-                const checkJobStatus = async () => {
-                    try {
-                        const jobStatus = await apiService.getRetainJobStatus(
-                            token.accessToken,
-                            vendorId,
-                            botId || "",
-                            String(jobId)
+                    if (status === "SUCCESS" || status === "COMPLETED") {
+                        showSuccess("Bot training completed successfully!");
+                        return true;
+                    } else if (status === "FAILED") {
+                        showError("Bot training failed. Please try again.");
+                        return true;
+                    } else if (currentTime - startTime >= timeoutDuration) {
+                        showError(
+                            "Training timed out. Please check the status later."
                         );
-
-                        const status = jobStatus?.data?.data?.status;
-                        const currentTime = Date.now();
-
-                        if (status === "SUCCESS" || status === "COMPLETED") {
-                            showSuccess("Bot training completed successfully!");
-                            return true;
-                        } else if (status === "FAILED") {
-                            showError("Bot training failed. Please try again.");
-                            return true;
-                        } else if (currentTime - startTime >= timeoutDuration) {
-                            showError(
-                                "Training timeout after 10 minutes. Please check the status later."
-                            );
-                            return true;
-                        }
-
-                        return false;
-                    } catch (error) {
-                        console.error("Error checking job status:", error);
-                        showError(extractErrorMessage(error));
                         return true;
                     }
-                };
 
-                // Start polling
-                const pollJobStatus = async () => {
-                    const shouldStop = await checkJobStatus();
-                    if (!shouldStop) {
-                        setTimeout(pollJobStatus, pollInterval);
-                    }
-                };
+                    return false;
+                } catch (error) {
+                    console.error("Error checking job status:", error);
+                    showError(extractErrorMessage(error));
+                    return true;
+                }
+            };
 
-                await pollJobStatus();
-            } catch (error) {
-                console.error("Error in train bot flow:", error);
-                showError(extractErrorMessage(error));
-            } finally {
-                setIsLoading(false);
-            }
+            const pollJobStatus = async () => {
+                const shouldStop = await checkJobStatus();
+                if (!shouldStop) {
+                    setTimeout(pollJobStatus, pollInterval);
+                }
+            };
+
+            await pollJobStatus();
+        } catch (error) {
+            console.error("Error in train bot flow:", error);
+            showError(extractErrorMessage(error));
+        } finally {
+            setIsLoading(false);
         }
     };
 

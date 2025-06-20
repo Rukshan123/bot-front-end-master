@@ -147,17 +147,40 @@ const apiService = {
         token: string,
         vendorId: { id: string },
         botId: string,
-        trainingData: {
-            qna?: string;
-            text?: string;
-            "deleted-content"?: string;
-        }
+        trainingData:
+            | {
+                  qna?: string;
+                  text?: string;
+                  files?: UploadFile[];
+                  "deleted-content"?: string;
+              }
+            | FormData
     ) => {
-        const formData = new FormData();
-        if (trainingData.qna) formData.append("qna", trainingData.qna);
-        if (trainingData.text) formData.append("text", trainingData.text);
-        if (trainingData["deleted-content"])
-            formData.append("deleted-content", trainingData["deleted-content"]);
+        let formData: FormData;
+
+        // 🧠 If already FormData, use as-is
+        if (trainingData instanceof FormData) {
+            formData = trainingData;
+        } else {
+            // 👇 Otherwise, convert the object to FormData
+            formData = new FormData();
+
+            if (trainingData.qna) formData.append("qna", trainingData.qna);
+            if (trainingData.text) formData.append("text", trainingData.text);
+            if (trainingData["deleted-content"])
+                formData.append(
+                    "deleted-content",
+                    trainingData["deleted-content"]
+                );
+
+            if (trainingData.files && Array.isArray(trainingData.files)) {
+                trainingData.files.forEach((file) => {
+                    if (file.originFileObj) {
+                        formData.append("files", file.originFileObj);
+                    }
+                });
+            }
+        }
 
         return axiosInstance.put(
             `/api/v1/vendors/${vendorId.id}/bots/${botId}/retrain`,
