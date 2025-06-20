@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { loginRequest } from "../../Auth/msalConfig";
 import Loader from "../common/Loader";
@@ -8,8 +8,21 @@ import apiService from "../../services/api";
 
 const AuthRedirect = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { instance, accounts } = useMsal();
     const [messageApi, contextHolder] = message.useMessage();
+
+    const invitationDataString = sessionStorage.getItem("invitationData");
+    const invitationData = invitationDataString
+        ? JSON.parse(invitationDataString)
+        : null;
+
+    const isEmailIvitation =
+        typeof invitationData?.email === "string" &&
+        invitationData.email.trim().length > 0;
+
+    console.error("Email from invitationData:", invitationData?.email);
+    console.error("isEmailIvitation:", isEmailIvitation);
 
     useEffect(() => {
         const checkExistingUser = async () => {
@@ -19,9 +32,6 @@ const AuthRedirect = () => {
                 navigate("/login");
                 return;
             }
-
-            // First check if we have cached user data
-            const cachedData = sessionStorage.getItem("userData");
 
             try {
                 const response = await instance.acquireTokenSilent({
@@ -39,7 +49,11 @@ const AuthRedirect = () => {
                 const entraIdFromApi = apiUserData?.entra_user_id;
                 const oidFromMsal = user.idTokenClaims?.oid;
 
-                if (
+                console.error(isEmailIvitation);
+
+                if (isEmailIvitation) {
+                    navigate("/login");
+                } else if (
                     entraIdFromApi &&
                     oidFromMsal &&
                     entraIdFromApi === oidFromMsal
@@ -70,7 +84,7 @@ const AuthRedirect = () => {
                             messageApi.warning(
                                 "Using cached profile data due to network issue"
                             );
-                            navigate("/logn", { state: userData });
+                            navigate("/login", { state: userData });
                             return;
                         }
                     } catch (e) {
@@ -104,7 +118,7 @@ const AuthRedirect = () => {
         };
 
         checkExistingUser();
-    }, [instance, accounts, navigate, messageApi]);
+    }, [instance, accounts, navigate, messageApi, location]);
 
     return (
         <>

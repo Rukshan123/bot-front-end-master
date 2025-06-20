@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
     Button,
     Modal,
@@ -27,11 +27,20 @@ interface Agent {
     [key: string]: any;
 }
 
+interface Member {
+    key: string;
+    name: string;
+    email: string;
+    role: string;
+    status: string;
+}
+
 const AgentDashboard = () => {
     const [tab, setTab] = useState<"agents" | "team">("agents");
     const { instance, accounts } = useMsal();
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
+    const [isInviting, setIsInviting] = useState(false);
     const [agents, setAgents] = useState<Agent[]>([]);
 
     useEffect(() => {
@@ -67,28 +76,89 @@ const AgentDashboard = () => {
         fetchBots();
     }, [instance, accounts, messageApi]);
 
-    const [members, setMembers] = useState([
-        {
-            key: "1",
-            name: "Peter",
-            email: "peter@gmail.com",
-            role: "Admin",
-            status: "Active",
-        },
-    ]);
+    const [members, setMembers] = useState<Member[]>([]);
+
+    const fetchMembers = useCallback(async () => {
+        try {
+            const user = accounts[0];
+            const token = await instance.acquireTokenSilent({
+                ...loginRequest,
+                account: user,
+            });
+
+            const data = JSON.parse(sessionStorage.getItem("userData") || "{}");
+            const vendorId = data?.vendor?.id;
+
+            if (!vendorId) {
+                messageApi.error("Vendor ID not found");
+                return;
+            }
+
+            const response = await apiService.getUsersByVendorId(
+                token.accessToken,
+                vendorId
+            );
+
+            const formattedMembers = response.data.data.map((member: any) => ({
+                key: member.id,
+                name: `${member.first_name} ${member.last_name}`,
+                email: member.email,
+                role: member.roles.join(", "),
+                status: member.status,
+            }));
+
+            setMembers(formattedMembers);
+        } catch (error) {
+            console.error("Error fetching members:", error);
+            messageApi.error("Failed to fetch team members");
+        }
+    }, [instance, accounts, messageApi]);
+
+    useEffect(() => {
+        if (tab === "team") {
+            fetchMembers();
+        }
+    }, [tab, fetchMembers]);
 
     const [inviteVisible, setInviteVisible] = useState(false);
     const [form] = Form.useForm();
 
-    const handleInvite = (values: any) => {
-        const newMember = {
-            key: Date.now().toString(),
-            ...values,
-            status: "Pending",
-        };
-        setMembers([...members, newMember]);
-        setInviteVisible(false);
-        form.resetFields();
+    const handleInvite = async (values: any) => {
+        setIsInviting(true);
+        try {
+            const user = accounts[0];
+            const token = await instance.acquireTokenSilent({
+                ...loginRequest,
+                account: user,
+            });
+
+            const data = JSON.parse(sessionStorage.getItem("userData") || "{}");
+            const vendorId = data?.vendor?.id;
+
+            if (!vendorId) {
+                messageApi.error("Vendor ID not found");
+                setIsInviting(false);
+                return;
+            }
+
+            await apiService.sendInvitation(token.accessToken, vendorId, {
+                email: values.email,
+                role: values.role.toUpperCase(),
+            });
+
+            messageApi.success("Invitation sent successfully!");
+            setInviteVisible(false);
+            form.resetFields();
+            fetchMembers();
+        } catch (error: any) {
+            console.error("Error sending invitation:", error);
+            const errorMessage =
+                error.response?.data?.message ||
+                "Failed to send invitation. Please try again.";
+            messageApi.error(errorMessage);
+        } finally {
+            setIsInviting(false);
+        }
     };
 
     const handleDelete = (key: string) => {
@@ -210,7 +280,11 @@ const AgentDashboard = () => {
                             <Button onClick={() => setInviteVisible(false)}>
                                 Cancel
                             </Button>
-                            <Button type="primary" htmlType="submit">
+                            <Button
+                                type="primary"
+                                htmlType="submit"
+                                loading={isInviting}
+                            >
                                 Invite
                             </Button>
                         </Space>

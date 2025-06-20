@@ -46,6 +46,12 @@ interface VendorData {
     address: string;
 }
 
+interface RegisterUserPayload {
+    vendor?: VendorData;
+    user: UserProfile;
+    invitation_token?: string;
+}
+
 // API Service
 const apiService = {
     // User related APIs
@@ -60,10 +66,7 @@ const apiService = {
         );
     },
 
-    registerUser: async (
-        token: string,
-        userData: { vendor: VendorData; user: UserProfile }
-    ) => {
+    registerUser: async (token: string, userData: RegisterUserPayload) => {
         return axiosInstance.post(
             `${process.env.REACT_APP_API_URL}/api/v1/users`,
             userData,
@@ -74,6 +77,40 @@ const apiService = {
             }
         );
     },
+
+    sendInvitation: async (
+        token: string,
+        vendorId: string,
+        invitationData: { email: string; role: string }
+    ) => {
+        return axiosInstance.post(
+            `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/users/invite`,
+            invitationData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    },
+
+    validateInvitation: async (invitationToken: string) => {
+        return axiosInstance.get(
+            `${process.env.REACT_APP_API_URL}/api/v1/invitations/validate?token=${invitationToken}`
+        );
+    },
+
+    getUsersByVendorId: async (token: string, vendorId: string) => {
+        return axiosInstance.get(
+            `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/users`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    },
+
     // Agent related APIs
     createAgent: async (
         token: string,
@@ -251,6 +288,36 @@ const apiService = {
     ) => {
         return axiosInstance.get(
             `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots/${botId}/retrain-jobs/${jobId}/status`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    },
+
+    getBotTrainingHistory: async (
+        token: string,
+        vendorId: { id: string },
+        botId: string
+    ) => {
+        return axiosInstance.get(
+            `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots/${botId}/retrain`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    },
+
+    getConversations: async (
+        token: string,
+        vendorId: { id: string },
+        botId: string
+    ) => {
+        return axiosInstance.get(
+            `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots/${botId}/conversations`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`,
