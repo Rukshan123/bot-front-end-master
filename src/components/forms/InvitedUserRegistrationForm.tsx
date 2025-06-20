@@ -4,6 +4,7 @@ import { AccountInfo } from "@azure/msal-browser";
 import { useNavigate } from "react-router-dom";
 import { message, Typography } from "antd";
 import { loginRequest } from "../../Auth/msalConfig";
+import apiService from "../../services/api";
 const { Title } = Typography;
 
 function InvitedUserRegistrationForm() {
@@ -20,7 +21,13 @@ function InvitedUserRegistrationForm() {
             : null;
         const invitedEmail = invitationData?.email;
 
-        if (!invitationData || !invitedEmail) {
+        const invitationToken = sessionStorage.getItem("invitationToken");
+
+        console.error(invitationData);
+        console.error(invitedEmail);
+        console.error(invitationToken);
+
+        if (!invitationData || !invitedEmail || !invitationToken) {
             setError(
                 "Invitation data not found. Please use the invitation link again."
             );
@@ -29,7 +36,9 @@ function InvitedUserRegistrationForm() {
 
         const user: AccountInfo | undefined = accounts[0];
         const claims = user?.idTokenClaims as Record<string, any>;
-        const signedInEmail = claims?.emails?.[0] || claims?.email;
+        const signedInEmail = claims?.["Org Email"] || "";
+
+        console.error(signedInEmail, "signedInEmail");
 
         if (!user) {
             // Not signed in, trigger login
@@ -47,8 +56,55 @@ function InvitedUserRegistrationForm() {
             signedInEmail.toLowerCase() === invitedEmail.toLowerCase()
         ) {
             // Email matches, proceed
-            messageApi.success("Sign in successful!");
-            setTimeout(() => navigate("/home"), 1000);
+            const register = async () => {
+                setIsLoading(true);
+                try {
+                    const response = await instance.acquireTokenSilent({
+                        ...loginRequest,
+                        account: user,
+                    });
+                    const accessToken = response.accessToken;
+                    const userProfile = {
+                        first_name:
+                            claims?.["First Name"] || claims?.given_name || "",
+                        last_name:
+                            claims?.["Last Name"] || claims?.family_name || "",
+                        email: signedInEmail,
+                        contact_number: claims?.["Contact Number"] || "",
+                        address: claims?.["Street Address"] || "",
+                        roles: ["MEMBER"],
+                    };
+                    const requestBody = {
+                        user: userProfile,
+                        invitation_token: invitationToken,
+                    };
+                    const apiResponse = await apiService.registerUser(
+                        accessToken,
+                        requestBody
+                    );
+                    sessionStorage.setItem(
+                        "userData",
+                        JSON.stringify(apiResponse.data.data)
+                    );
+                    messageApi.success("Registration successful!");
+                    console.error("register through invite link");
+                    setTimeout(
+                        () =>
+                            navigate("/home", { state: apiResponse.data.data }),
+                        1000
+                    );
+                } catch (error: any) {
+                    console.error("Registration error:", error);
+                    const errorMessage =
+                        error.response?.data?.message ||
+                        "Registration failed. Please try again.";
+                    setError(errorMessage);
+                    messageApi.error(errorMessage);
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            register();
         } else {
             // Email does not match, sign out and show error
             setError(
@@ -57,7 +113,7 @@ function InvitedUserRegistrationForm() {
             );
             setTimeout(() => {
                 instance.logoutRedirect();
-            }, 2000);
+            }, 100000);
         }
     }, [accounts, instance, navigate, messageApi]);
 

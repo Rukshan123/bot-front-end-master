@@ -28,7 +28,12 @@ const AuthRedirect = () => {
         const checkExistingUser = async () => {
             const user = accounts[0];
 
-            if (!user) {
+            console.error(
+                !user && isEmailIvitation == false,
+                "!user && !isEmailIvitation"
+            );
+
+            if (!user && isEmailIvitation == false) {
                 navigate("/login");
                 return;
             }
@@ -52,7 +57,7 @@ const AuthRedirect = () => {
                 console.error(isEmailIvitation);
 
                 if (isEmailIvitation) {
-                    navigate("/login");
+                    navigate("/register-invited-user");
                 } else if (
                     entraIdFromApi &&
                     oidFromMsal &&
@@ -94,20 +99,8 @@ const AuthRedirect = () => {
                 }
 
                 // Handle API errors
-                if (error.response?.status === 404) {
-                    // User not found - clear session and redirect to vendor registration
-                    sessionStorage.removeItem("userData");
-                    navigate("/vendor-registration");
-                } else if (error.code === "ECONNABORTED") {
-                    messageApi.error(
-                        "Request timeout. Please check your internet connection and try again."
-                    );
-                    navigate("/login");
-                } else if (error.code === "ERR_NETWORK") {
-                    messageApi.error(
-                        "Network error. The server might be unavailable. Please try again later."
-                    );
-                    navigate("/login");
+                if (isEmailIvitation) {
+                    navigate("/register-invited-user");
                 } else {
                     messageApi.error(
                         "An error occurred while checking your profile. Please try again."

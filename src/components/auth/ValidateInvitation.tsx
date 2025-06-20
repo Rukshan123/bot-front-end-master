@@ -31,10 +31,14 @@ const ValidateInvitation = () => {
                     JSON.stringify(response.data.data)
                 );
 
-                await instance.loginRedirect({
-                    ...loginRequest,
-                    state: JSON.stringify({ isInvitation: true }),
-                });
+                console.error(response.data.data, "response.data.data");
+
+                navigate("/auth/redirect");
+
+                // await instance.loginRedirect({
+                //     ...loginRequest,
+                //     state: JSON.stringify({ isInvitation: true }),
+                // });
             } catch (err: any) {
                 const errorMessage =
                     err.response?.data?.message ||
