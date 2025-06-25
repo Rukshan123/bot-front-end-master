@@ -41,7 +41,13 @@ const AppContent = () => {
     const { instance, accounts } = useMsal();
     const isAuthenticated = useIsAuthenticated();
 
-    const hideNavbarRoutes = ["/", "/login", "/register", "/vendorReg"];
+    const hideNavbarRoutes = [
+        "/",
+        "/login",
+        "/register",
+        "/vendorReg",
+        "/register-invited-user",
+    ];
     const shouldShowNavbar = !hideNavbarRoutes.includes(location.pathname);
 
     useEffect(() => {

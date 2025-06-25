@@ -325,6 +325,45 @@ const apiService = {
             }
         );
     },
+
+    getBotCustomization: async (
+        token: string,
+        vendorId: string,
+        botId: string
+    ) => {
+        return axiosInstance.get(
+            `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots/${botId}/customization`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+    },
+
+    upsertBotCustomization: async (
+        token: string,
+        vendorId: string,
+        botId: string,
+        customization: {
+            init_msg: string;
+            display_name: string;
+            chat_icon: string;
+            profile_pic: string;
+            chat_icon_position: string;
+        }
+    ) => {
+        return axiosInstance.post(
+            `${process.env.REACT_APP_API_URL}/api/v1/vendors/${vendorId}/bots/${botId}/customization`,
+            customization,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+    },
 };
 
 export default apiService;

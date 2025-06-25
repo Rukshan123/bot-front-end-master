@@ -8,6 +8,7 @@ import {
     Select,
     Typography,
     message,
+    Spin,
 } from "antd";
 import {
     PlusOutlined,
@@ -31,7 +32,7 @@ interface Member {
     key: string;
     name: string;
     email: string;
-    role: string;
+    roles: [];
     status: string;
 }
 
@@ -41,10 +42,13 @@ const AgentDashboard = () => {
     const [messageApi, contextHolder] = message.useMessage();
     const [isLoading, setIsLoading] = useState(false);
     const [isInviting, setIsInviting] = useState(false);
+    const [isLoadingBots, setIsLoadingBots] = useState(false);
+    const [isLoadingMembers, setIsLoadingMembers] = useState(false);
     const [agents, setAgents] = useState<Agent[]>([]);
 
     useEffect(() => {
         const fetchBots = async () => {
+            setIsLoadingBots(true);
             try {
                 const user = accounts[0];
                 const token = await instance.acquireTokenSilent({
@@ -70,6 +74,8 @@ const AgentDashboard = () => {
             } catch (error) {
                 console.error("Error fetching bots:", error);
                 messageApi.error("Failed to fetch bots");
+            } finally {
+                setIsLoadingBots(false);
             }
         };
 
@@ -79,6 +85,7 @@ const AgentDashboard = () => {
     const [members, setMembers] = useState<Member[]>([]);
 
     const fetchMembers = useCallback(async () => {
+        setIsLoadingMembers(true);
         try {
             const user = accounts[0];
             const token = await instance.acquireTokenSilent({
@@ -103,7 +110,7 @@ const AgentDashboard = () => {
                 key: member.id,
                 name: `${member.first_name} ${member.last_name}`,
                 email: member.email,
-                role: member.roles.join(", "),
+                roles: member.roles,
                 status: member.status,
             }));
 
@@ -111,6 +118,8 @@ const AgentDashboard = () => {
         } catch (error) {
             console.error("Error fetching members:", error);
             messageApi.error("Failed to fetch team members");
+        } finally {
+            setIsLoadingMembers(false);
         }
     }, [instance, accounts, messageApi]);
 
@@ -217,15 +226,18 @@ const AgentDashboard = () => {
                     >
                         Agent List
                     </Typography.Title>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-2 md:p-5">
-                        {agents.map((agent) => (
-                            <AgentCard
-                                key={agent.id}
-                                agent={agent}
-                                allAgents={agents}
-                            />
-                        ))}
-                    </div>
+
+                    <Spin spinning={isLoadingBots}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-2 md:p-5">
+                            {agents.map((agent) => (
+                                <AgentCard
+                                    key={agent.id}
+                                    agent={agent}
+                                    allAgents={agents}
+                                />
+                            ))}
+                        </div>
+                    </Spin>
                 </>
             )}
 
@@ -241,12 +253,15 @@ const AgentDashboard = () => {
                             Invite Members
                         </Button>
                     </div>
-                    <div className="px-2 md:px-0">
-                        <TeamMembersTable
-                            members={members}
-                            onDelete={handleDelete}
-                        />
-                    </div>
+
+                    <Spin spinning={isLoadingMembers}>
+                        <div className="px-2 md:px-0">
+                            <TeamMembersTable
+                                members={members}
+                                onDelete={handleDelete}
+                            />
+                        </div>
+                    </Spin>
                 </>
             )}
 
@@ -285,7 +300,9 @@ const AgentDashboard = () => {
                                 htmlType="submit"
                                 loading={isInviting}
                             >
-                                Invite
+                                {isInviting
+                                    ? "Sending Invitation..."
+                                    : "Invite"}
                             </Button>
                         </Space>
                     </Form.Item>

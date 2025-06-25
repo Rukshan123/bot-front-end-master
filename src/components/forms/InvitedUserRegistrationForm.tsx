@@ -51,6 +51,9 @@ function InvitedUserRegistrationForm() {
         }
 
         // User is signed in, check email
+
+        console.error(signedInEmail.toLowerCase(), "signedInEmail");
+        console.error(invitedEmail.toLowerCase(), "invitedEmail");
         if (
             signedInEmail &&
             signedInEmail.toLowerCase() === invitedEmail.toLowerCase()
@@ -73,10 +76,10 @@ function InvitedUserRegistrationForm() {
                         contact_number: claims?.["Contact Number"] || "",
                         address: claims?.["Street Address"] || "",
                         roles: ["MEMBER"],
+                        invitation_token: invitationToken,
                     };
                     const requestBody = {
                         user: userProfile,
-                        invitation_token: invitationToken,
                     };
                     const apiResponse = await apiService.registerUser(
                         accessToken,
@@ -106,14 +109,17 @@ function InvitedUserRegistrationForm() {
             };
             register();
         } else {
-            // Email does not match, sign out and show error
+            // Email does not match, sign out and redirect to registration link again
             setError(
                 "You must sign in with the invited email address: " +
                     invitedEmail
             );
+
             setTimeout(() => {
-                instance.logoutRedirect();
-            }, 100000);
+                instance.logoutRedirect({
+                    postLogoutRedirectUri: `/register-member?token=${invitationToken}`,
+                });
+            }, 4000); // 4 seconds so user can read the error
         }
     }, [accounts, instance, navigate, messageApi]);
 
